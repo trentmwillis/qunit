@@ -5,6 +5,7 @@ import dump from "./dump";
 import Assert from "./assert";
 import Test, { test, skip, only, todo, pushFailure } from "./test";
 import exportQUnit from "./export";
+import Logger from "./logger";
 
 import config from "./core/config";
 import { defined, extend, objectType, is, now, generateHash } from "./core/utilities";
@@ -28,8 +29,7 @@ export const globalSuite = new SuiteReport();
 config.currentModule.suiteReport = globalSuite;
 
 const moduleStack = [];
-var globalStartCalled = false;
-var runStarted = false;
+let runStarted = false;
 
 // Figure out if we're running the tests from a server or not
 QUnit.isLocal = !( defined.document && window.location.protocol !== "file:" );
@@ -184,36 +184,23 @@ extend( QUnit, {
 
 	only: only,
 
-	start: function( count ) {
-		var globalStartAlreadyCalled = globalStartCalled;
-
-		if ( !config.current ) {
-			globalStartCalled = true;
-
-			if ( runStarted ) {
-				throw new Error( "Called start() while test already started running" );
-			} else if ( globalStartAlreadyCalled || count > 1 ) {
-				throw new Error( "Called start() outside of a test context too many times" );
-			} else if ( config.autostart ) {
-				throw new Error( "Called start() outside of a test context when " +
-					"QUnit.config.autostart was true" );
-			} else if ( !config.pageLoaded ) {
-
-				// The page isn't completely loaded yet, so we set autostart and then
-				// load if we're in Node or wait for the browser's load event.
-				config.autostart = true;
-
-				// Starts from Node even if .load was not previously called. We still return
-				// early otherwise we'll wind up "beginning" twice.
-				if ( !defined.document ) {
-					QUnit.load();
-				}
-
-				return;
-			}
-		} else {
-			throw new Error( "QUnit.start cannot be called inside a test context." );
+	start() {
+		if ( config.current ) {
+			throw new Error( "QUnit.start() cannot be called inside a test" );
+		} else if ( runStarted ) {
+			throw new Error( "Called QUnit.start() after test already started running" );
 		}
+
+		// Initialize the configuration options
+		extend( config, {
+			stats: { all: 0, bad: 0 },
+			started: 0,
+			updateRate: 1000,
+			autostart: true,
+			filter: ""
+		}, true );
+
+		config.blocking = false;
 
 		scheduleBegin();
 	},
@@ -226,25 +213,11 @@ extend( QUnit, {
 
 	extend: extend,
 
-	load: function() {
-		config.pageLoaded = true;
+	load() {
+		Logger.warn( "QUnit.load() is deprecated and will be removed in QUnit 3.0. " +
+			"Please use QUnit.start() instead." );
 
-		// Initialize the configuration options
-		extend( config, {
-			stats: { all: 0, bad: 0 },
-			started: 0,
-			updateRate: 1000,
-			autostart: true,
-			filter: ""
-		}, true );
-
-		if ( !runStarted ) {
-			config.blocking = false;
-
-			if ( config.autostart ) {
-				scheduleBegin();
-			}
-		}
+		QUnit.start();
 	},
 
 	stack: function( offset ) {

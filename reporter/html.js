@@ -939,17 +939,22 @@ export function escapeText( s ) {
 		}
 	} );
 
-	// Avoid readyState issue with phantomjs
-	// Ref: #818
-	var notPhantom = ( function( p ) {
-		return !( p && p.version && p.version.major > 0 );
-	} )( window.phantom );
+	const shouldAutostart = typeof config.autostart === "undefined" ? true : config.autostart;
+	if ( shouldAutostart ) {
 
-	if ( notPhantom && document.readyState === "complete" ) {
-		QUnit.load();
-	} else {
-		addEvent( window, "load", QUnit.load );
+		// Avoid readyState issue with phantomjs
+		// Ref: #818
+		var notPhantom = ( function( p ) {
+			return !( p && p.version && p.version.major > 0 );
+		} )( window.phantom );
+
+		if ( notPhantom && document.readyState === "complete" ) {
+			QUnit.start();
+		} else {
+			addEvent( window, "load", QUnit.start );
+		}
 	}
+
 
 	// Wrap window.onerror. We will call the original window.onerror to see if
 	// the existing handler fully handles the error; if not, we will call the
