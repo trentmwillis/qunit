@@ -417,11 +417,12 @@ Test.prototype = {
 
 		this.previousFailure = !!previousFailCount;
 
+		runTest.id = test.testId;
 		ProcessingQueue.add( runTest, prioritize, config.seed );
 
 		// If the queue has already finished, we manually process the new test
 		if ( ProcessingQueue.finished ) {
-			ProcessingQueue.advance();
+			ProcessingQueue.runTest( test.testId ).then( () => ProcessingQueue.done() );
 		}
 	},
 

@@ -12,6 +12,7 @@ import { defined, extend, objectType, is, now } from "./core/utilities";
 import { registerLoggingCallbacks, runLoggingCallbacks } from "./core/logging";
 import { sourceFromStacktrace } from "./core/stacktrace";
 import ProcessingQueue from "./core/processing-queue";
+import Supervisor from "./core/supervisor";
 
 import SuiteReport from "./reports/suite";
 
@@ -119,7 +120,19 @@ extend( QUnit, {
 
 	onError,
 
-	onUnhandledRejection
+	onUnhandledRejection,
+
+	registerWorkerFactory( factory ) {
+		Supervisor.factory = factory;
+	},
+
+	startAsWorker() {
+		return {
+			runTest( id ) {
+				return ProcessingQueue.runTest( id );
+			}
+		};
+	}
 } );
 
 QUnit.pushFailure = pushFailure;
@@ -170,7 +183,7 @@ function begin() {
 		} );
 	}
 
-	process();
+	Supervisor.start( config.numWorkers || 1, QUnit );
 }
 
 export function process() {

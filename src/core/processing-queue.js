@@ -25,6 +25,7 @@ let unitSampler;
 // After tests are dequeued from config.queue they are expanded into
 // a set of tasks in this queue.
 const taskQueue = [];
+let testDone;
 
 /**
  * Advances the taskQueue to the next task. If the taskQueue is empty,
@@ -34,7 +35,11 @@ function advance() {
 	advanceTaskQueue();
 
 	if ( !taskQueue.length ) {
-		advanceTestQueue();
+		if ( typeof testDone === "function" ) {
+			testDone();
+		} else {
+			testDone = true;
+		}
 	}
 }
 
@@ -60,23 +65,37 @@ function advanceTaskQueue() {
 	config.depth--;
 }
 
-/**
- * Advance the testQueue to the next test to process. Call done() if testQueue completes.
- */
-function advanceTestQueue() {
-	if ( !config.blocking && !config.queue.length && config.depth === 0 ) {
-		done();
-		return;
-	}
-
-	const testTasks = config.queue.shift();
-	addToTaskQueue( testTasks() );
-
+function runTest( id ) {
+	let test = config.queue.shift();
 	if ( priorityCount > 0 ) {
 		priorityCount--;
 	}
 
+	while ( test.id !== id ) {
+		test = config.queue.shift();
+		if ( priorityCount > 0 ) {
+			priorityCount--;
+		}
+	}
+
+	const testTasks = test();
+	addToTaskQueue( testTasks );
+
+	testDone = false;
+
+	const promise = {
+		then( callback ) {
+			if ( testDone ) {
+				callback();
+			} else {
+				testDone = callback;
+			}
+		}
+	};
+
 	advance();
+
+	return promise;
 }
 
 /**
@@ -197,7 +216,9 @@ const ProcessingQueue = {
 	finished: false,
 	add: addToTestQueue,
 	advance,
-	taskCount: taskQueueLength
+	taskCount: taskQueueLength,
+	runTest,
+	done
 };
 
 export default ProcessingQueue;
