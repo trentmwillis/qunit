@@ -1,6 +1,6 @@
 import global from "global";
 
-import { begin } from "./core";
+import { process } from "./core";
 import { setTimeout, clearTimeout } from "./globals";
 import { emit } from "./events";
 import Assert from "./assert";
@@ -805,10 +805,10 @@ function internalStart( test ) {
 				clearTimeout( config.timeout );
 			}
 
-			begin();
+			process();
 		} );
 	} else {
-		begin();
+		process();
 	}
 }
 

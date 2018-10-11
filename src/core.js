@@ -143,9 +143,7 @@ function scheduleBegin() {
 	}
 }
 
-export function begin() {
-	var i, l,
-		modulesLog = [];
+function begin() {
 
 	// If the test run hasn't officially begun yet
 	if ( !config.started ) {
@@ -159,12 +157,10 @@ export function begin() {
 		}
 
 		// Avoid unnecessary information by not logging modules' test environments
-		for ( i = 0, l = config.modules.length; i < l; i++ ) {
-			modulesLog.push( {
-				name: config.modules[ i ].name,
-				tests: config.modules[ i ].tests
-			} );
-		}
+		const modulesLog = config.modules.map( module => ( {
+			name: module.name,
+			tests: module.tests
+		} ) );
 
 		// The test run is officially beginning now
 		emit( "runStart", globalSuite.start( true ) );
@@ -174,6 +170,10 @@ export function begin() {
 		} );
 	}
 
+	process();
+}
+
+export function process() {
 	config.blocking = false;
 	ProcessingQueue.advance();
 }
