@@ -127,6 +127,7 @@ extend( QUnit, {
 	},
 
 	startAsWorker() {
+		Supervisor.disable();
 		return {
 			runTest( id ) {
 				return ProcessingQueue.runTest( id );
@@ -183,7 +184,7 @@ function begin() {
 		} );
 	}
 
-	Supervisor.start( config.numWorkers || 1, QUnit );
+	Supervisor.start( config.numWorkers || 4, QUnit );
 }
 
 export function process() {

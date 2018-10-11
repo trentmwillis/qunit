@@ -6,7 +6,15 @@ export default {
 
 	factory: defaultWorkerFactory,
 
+	disable() {
+		this.disabled = true;
+	},
+
 	start( numWorkers, QUnit ) {
+		if ( this.disabled ) {
+			return;
+		}
+
 		this.testQueue = QUnit.config.queue;
 		for ( let i = 0; i < numWorkers; i++ ) {
 			this.factory( QUnit ).then( worker => this.startWorker( worker ) );
@@ -15,6 +23,7 @@ export default {
 
 	startWorker( worker ) {
 		this.workers.push( worker );
+		worker.id = this.workers.length;
 		this.runNextTest( worker );
 	},
 
@@ -30,9 +39,10 @@ export default {
 	currentTestId: null,
 
 	getNextTestId() {
-		const nextTest = this.testQueue[ 0 ];
+		let nextTest = this.testQueue[ 0 ];
 		if ( nextTest && this.currentTestId === nextTest.id ) {
 			this.testQueue.shift();
+			nextTest = this.testQueue[ 0 ];
 		}
 
 		const nextTestId = nextTest && nextTest.id;

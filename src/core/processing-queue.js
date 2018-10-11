@@ -170,27 +170,27 @@ function done() {
 	const runtime = now() - config.started;
 	const passed = config.stats.all - config.stats.bad;
 
-	if ( config.stats.all === 0 ) {
+	// if ( config.stats.all === 0 ) {
 
-		if ( config.filter && config.filter.length ) {
-			throw new Error( `No tests matched the filter "${config.filter}".` );
-		}
+	// 	if ( config.filter && config.filter.length ) {
+	// 		throw new Error( `No tests matched the filter "${config.filter}".` );
+	// 	}
 
-		if ( config.module && config.module.length ) {
-			throw new Error( `No tests matched the module "${config.module}".` );
-		}
+	// 	if ( config.module && config.module.length ) {
+	// 		throw new Error( `No tests matched the module "${config.module}".` );
+	// 	}
 
-		if ( config.moduleId && config.moduleId.length ) {
-			throw new Error( `No tests matched the moduleId "${config.moduleId}".` );
-		}
+	// 	if ( config.moduleId && config.moduleId.length ) {
+	// 		throw new Error( `No tests matched the moduleId "${config.moduleId}".` );
+	// 	}
 
-		if ( config.testId && config.testId.length ) {
-			throw new Error( `No tests matched the testId "${config.testId}".` );
-		}
+	// 	if ( config.testId && config.testId.length ) {
+	// 		throw new Error( `No tests matched the testId "${config.testId}".` );
+	// 	}
 
-		throw new Error( "No tests were run." );
+	// 	throw new Error( "No tests were run." );
 
-	}
+	// }
 
 	emit( "runEnd", globalSuite.end( true ) );
 	runLoggingCallbacks( "done", {
